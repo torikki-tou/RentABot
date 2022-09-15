@@ -1,2 +1,2 @@
-from src.repo.bot import BotRepo
+from src.repo.bot import bot
 from src.repo.user import user

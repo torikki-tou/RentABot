@@ -1,23 +1,69 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from motor.motor_asyncio import AsyncIOMotorCollection as DBCollection
+
+from src import schemas, repo
+from src.api import deps
 
 router = APIRouter()
 
 
-@router.get('/{user_id}')
-def read_user():
-    ...
+@router.get(
+    '/{user_id}',
+    response_model=schemas.User,
+    status_code=status.HTTP_200_OK
+)
+async def read_user(
+        user_id: str,
+        db_collection: DBCollection = Depends(deps.get_users_collection)
+):
+    user = await repo.user.get(db_collection, id_=user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return schemas.User(**user.dict())
 
 
-@router.post('/')
-def create_user():
-    ...
+@router.post(
+    '/',
+    response_model=schemas.User,
+    status_code=status.HTTP_201_CREATED
+)
+async def create_user(
+        obj_in: schemas.UserCreate,
+        db_collection: DBCollection = Depends(deps.get_users_collection)
+):
+    user = await repo.user.get_by_email(db_collection, email=obj_in.email)
+    if user:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
+    user = await repo.user.create(db_collection, obj_in=obj_in)
+    return schemas.User(**user.dict())
 
 
-@router.put('/{user_id}')
-def update_user():
-    ...
+@router.put(
+    '/{user_id}',
+    response_model=schemas.User,
+    status_code=status.HTTP_200_OK
+)
+async def update_user(
+        user_id: str,
+        obj_in: schemas.UserUpdate,
+        db_collection: DBCollection = Depends(deps.get_users_collection)
+):
+    user = await repo.user.update(db_collection, id_=user_id, obj_in=obj_in)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return schemas.User(**user.dict())
 
 
-@router.delete('/{user_id}')
-def remove_user():
-    ...
+@router.delete(
+    '/{user_id}',
+    response_model=schemas.User,
+    status_code=status.HTTP_200_OK
+)
+async def remove_user(
+        user_id: str,
+        db_collection: DBCollection = Depends(deps.get_users_collection)
+):
+    user = await repo.user.remove(db_collection, id_=user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return schemas.User(**user.dict())

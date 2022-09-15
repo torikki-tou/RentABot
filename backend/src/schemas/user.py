@@ -15,12 +15,18 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
-    password: str
+    password: Optional[str] = None
 
 
 class UserInDBBase(UserBase):
-    hashed_password: str
+    id: str
+    name: str
+    email: str
 
 
 class User(UserInDBBase):
     pass
+
+
+class UserInDB(UserInDBBase):
+    hashed_password: str
