@@ -2,15 +2,19 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from src.telegram.dispatcher import Scenario
+
 
 class BotBase(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    scenario: Optional[Scenario] = None
 
 
 class BotCreate(BotBase):
     title: str
     token: str
+    scenario: Scenario
 
 
 class BotUpdate(BotBase):
@@ -29,3 +33,4 @@ class Bot(BotInDBBase):
 
 class BotInDB(BotInDBBase):
     token: str
+    webhook_key: str

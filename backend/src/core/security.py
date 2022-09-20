@@ -3,6 +3,7 @@ from typing import Optional
 
 import jwt
 import bcrypt
+import secrets
 from bson import ObjectId
 from pydantic import ValidationError
 
@@ -54,3 +55,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
         bytes(password, encoding='utf8'),
         bytes(hashed_password, encoding='utf8')
     )
+
+
+def get_webhook_key():
+    return secrets.token_urlsafe()
