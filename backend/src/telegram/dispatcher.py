@@ -1,7 +1,11 @@
 from enum import Enum
+from contextlib import contextmanager
+from typing import ContextManager
+
+from aiogram import Dispatcher, Bot
 
 from src.telegram import scenarios
-from src.telegram.helpers.dispatcher import CustomDispatcher
+from src.telegram.helpers.dispatcher import PredefinedDispatcher
 
 
 class Scenario(str, Enum):
@@ -9,12 +13,23 @@ class Scenario(str, Enum):
     second = 'second'
 
 
-def get_dispatcher(scenario: Scenario) -> CustomDispatcher:
+def get_dispatcher(scenario: Scenario) -> PredefinedDispatcher:
     match scenario:
         case Scenario.first:
-            dispatcher = scenarios.first.dispatcher
+            return scenarios.first.dispatcher
         case Scenario.second:
-            dispatcher = scenarios.second.dispatcher
+            return scenarios.second.dispatcher
         case _:
             raise
-    return dispatcher
+
+
+@contextmanager
+def dispatcher_context(
+        scenario: Scenario, bot_id: str, bot_token: str
+) -> ContextManager[PredefinedDispatcher]:
+    dispatcher = get_dispatcher(scenario)
+    with dispatcher.bot.with_token(bot_token, validate_token=False),\
+            dispatcher.storage.with_prefix(str(bot_id)):
+        Dispatcher.set_current(dispatcher)
+        Bot.set_current(dispatcher.bot)
+        yield dispatcher

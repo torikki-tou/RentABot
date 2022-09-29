@@ -15,7 +15,7 @@ oauth2_bearer = OAuth2PasswordBearer(
 async def get_current_user(
         token: str = Depends(oauth2_bearer),
         db_collection: DBCollection = Depends(deps.get_users_collection)
-) -> schemas.User:
+) -> schemas.UserInDB:
     user_id = security.get_user_id_from_access_token(token)
     if not user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
@@ -23,5 +23,3 @@ async def get_current_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return user
-
-

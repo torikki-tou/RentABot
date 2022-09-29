@@ -3,6 +3,8 @@ from motor.motor_asyncio import AsyncIOMotorCollection as DBCollection
 
 from src import schemas, repo
 from src.api import deps
+from src.core.settings import settings
+from src.telegram import dispatcher_context
 
 
 router = APIRouter()
@@ -31,13 +33,19 @@ async def read_bot(
 async def create_bot(
         obj_in: schemas.BotCreate,
         db_collection: DBCollection = Depends(deps.get_bots_collection),
-        user: schemas.User = Depends(deps.get_current_user)
+        user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
     bot = await repo.bot.create_with_owner(
         db_collection,
         obj_in=obj_in,
         owner_id=user.id
     )
+    with dispatcher_context(bot.scenario, bot.id, bot.token) as dispatcher:
+        await dispatcher.bot.set_webhook(
+            url=settings.WEBHOOK_URL,
+            secret_token=bot.webhook_key,
+            drop_pending_updates=True
+        )
     return schemas.Bot(**bot.dict())
 
 

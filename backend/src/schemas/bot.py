@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from src.telegram.dispatcher import Scenario
+from src.telegram import Scenario
 
 
 class BotBase(BaseModel):
