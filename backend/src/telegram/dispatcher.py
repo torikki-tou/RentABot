@@ -6,11 +6,7 @@ from aiogram import Dispatcher, Bot
 
 from src.telegram import scenarios
 from src.telegram.helpers.dispatcher import PredefinedDispatcher
-
-
-class Scenario(str, Enum):
-    first = 'first'
-    second = 'second'
+from src.core.settings import Scenario
 
 
 def get_dispatcher(scenario: Scenario) -> PredefinedDispatcher:

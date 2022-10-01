@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from src.telegram import Scenario
+from src.core.settings import Scenario
 
 
 class BotBase(BaseModel):
@@ -34,3 +34,7 @@ class Bot(BotInDBBase):
 class BotInDB(BotInDBBase):
     token: str
     webhook_key: str
+
+
+class WebhookUp(BaseModel):
+    is_up: bool

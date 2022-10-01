@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from motor.motor_asyncio import AsyncIOMotorCollection as DBCollection
 
 from src import schemas, repo
 from src.api import deps
-from src.core.settings import settings
-from src.telegram import dispatcher_context
+from src.telegram import webhook
 
 
 router = APIRouter()
@@ -40,12 +39,7 @@ async def create_bot(
         obj_in=obj_in,
         owner_id=user.id
     )
-    with dispatcher_context(bot.scenario, bot.id, bot.token) as dispatcher:
-        await dispatcher.bot.set_webhook(
-            url=settings.WEBHOOK_URL,
-            secret_token=bot.webhook_key,
-            drop_pending_updates=True
-        )
+    await webhook.set_(bot)
     return schemas.Bot(**bot.dict())
 
 
@@ -65,6 +59,37 @@ async def update_bot(
     return schemas.Bot(**bot.dict())
 
 
+@router.patch(
+    '/{bot_id}/recreate_webhook',
+    response_class=Response,
+    status_code=status.HTTP_200_OK
+)
+async def recreate_webhook(
+        bot_id: str,
+        db_collection: DBCollection = Depends(deps.get_bots_collection)
+):
+    bot = await repo.bot.get(db_collection, id_=bot_id)
+    if not bot:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    await webhook.set_(bot)
+
+
+@router.get(
+    '/{bot_id}/check_webhook',
+    response_model=schemas.WebhookUp,
+    status_code=status.HTTP_200_OK
+)
+async def check_webhook(
+        bot_id: str,
+        db_collection: DBCollection = Depends(deps.get_bots_collection)
+):
+    bot = await repo.bot.get(db_collection, id_=bot_id)
+    if not bot:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    is_up = await webhook.is_up(bot)
+    return schemas.WebhookUp(is_up=is_up)
+
+
 @router.delete(
     '/{bot_id}',
     response_model=schemas.Bot,
@@ -77,4 +102,5 @@ async def remove_bot(
     bot = await repo.bot.remove(db_collection, id_=bot_id)
     if not bot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    await webhook.delete(bot)
     return schemas.Bot(**bot.dict())
