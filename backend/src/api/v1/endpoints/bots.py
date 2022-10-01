@@ -3,7 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection as DBCollection
 
 from src import schemas, repo
 from src.api import deps
-from src.telegram import webhook
+from src.telegram import webhook, validate_token
 
 
 router = APIRouter()
@@ -34,6 +34,19 @@ async def create_bot(
         db_collection: DBCollection = Depends(deps.get_bots_collection),
         user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
+    can_be, reason = await repo.bot.can_be_created(
+        db_collection, obj_in=obj_in, owner_id=user.id
+    )
+    if not can_be:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=reason
+        )
+    if not await validate_token(obj_in.token):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Token is not valid'
+        )
     bot = await repo.bot.create_with_owner(
         db_collection,
         obj_in=obj_in,
@@ -43,7 +56,7 @@ async def create_bot(
     return schemas.Bot(**bot.dict())
 
 
-@router.put(
+@router.patch(
     '/{bot_id}',
     response_model=schemas.Bot,
     status_code=status.HTTP_200_OK

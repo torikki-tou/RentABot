@@ -19,6 +19,16 @@ class UserRepo(BaseRepo[UserInDB, UserCreate, UserUpdate]):
         del obj['password']
         return await super(UserRepo, self).create(collection, obj_in=obj)
 
+    async def can_be_created(
+            self,
+            collection: DBCollection,
+            obj_in: UserCreate
+    ) -> tuple[bool, Optional[str]]:
+        obj = await self.get_by_email(collection, email=obj_in.email)
+        if obj:
+            return False, 'Email already in use'
+        return True, None
+
     async def update(
             self,
             collection: DBCollection,

@@ -20,6 +20,23 @@ class BotRepo(BaseRepo[BotInDB, BotCreate, BotUpdate]):
         obj['id'] = str(obj.pop('_id'))
         return self.model(**obj)
 
+    @staticmethod
+    async def can_be_created(
+            collection: DBCollection,
+            obj_in: BotCreate,
+            owner_id: str | ObjectId
+    ) -> tuple[bool, Optional[str]]:
+        obj = await collection.find_one({'token': obj_in.token})
+        if obj:
+            return False, 'Token already in use'
+        obj = await collection.find_one({
+            'owner_id': str(owner_id),
+            'title': obj_in.title
+        })
+        if obj:
+            return False, 'You already have a bot with such title'
+        return True, None
+
     async def create(
             self,
             collection: DBCollection,
