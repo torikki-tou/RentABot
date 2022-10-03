@@ -7,6 +7,6 @@ from src.telegram.helpers.dispatcher import get_base_dispatcher
 dispatcher = get_base_dispatcher()
 
 dispatcher.register_message_handler(
-    handlers.base.start, CommandStart())
+    handlers.base.start, CommandStart(), state='*')
 dispatcher.register_message_handler(
-    handlers.base.echo)
+    handlers.base.echo, state='*')

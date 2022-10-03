@@ -21,12 +21,12 @@ def get_dispatcher(scenario: Scenario) -> PredefinedDispatcher:
 
 @contextmanager
 def dispatcher_context(
-        scenario: Scenario, bot_id: str, bot_token: str
+        scenario: Scenario, storage_prefix: str, bot_token: str
 ) -> ContextManager[PredefinedDispatcher]:
     dispatcher = get_dispatcher(scenario)
     try:
         with dispatcher.bot.with_token(bot_token, validate_token=False),\
-                dispatcher.storage.with_prefix(str(bot_id)):
+                dispatcher.storage.with_prefix(storage_prefix):
             Dispatcher.set_current(dispatcher)
             Bot.set_current(dispatcher.bot)
             yield dispatcher

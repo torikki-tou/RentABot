@@ -5,7 +5,7 @@ from typing import ContextManager
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 
-class RedisStorage(RedisStorage2):
+class UpgradedRedisStorage(RedisStorage2):
     _ctx_prefix = ContextVar('StorageDifferentPrefix', default=('fsm',))
     __prefix = None
 
