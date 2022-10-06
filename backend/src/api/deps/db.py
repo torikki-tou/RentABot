@@ -24,7 +24,6 @@ class Databases:
 
     def __init__(self):
         self.__client = get_mongo_client()
-        api_collections = APICollections(self.__client.api)
 
     @cached_property
     def api(self) -> APICollections:
