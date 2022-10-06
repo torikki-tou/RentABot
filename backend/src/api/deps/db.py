@@ -1,15 +1,31 @@
-from fastapi import Depends
+from typing import Callable
 
-from src.db import get_mongo_client, config
+from motor.motor_asyncio import AsyncIOMotorDatabase
+from motor.motor_asyncio import AsyncIOMotorCollection as DBCollection
 
-
-def get_api_database():
-    return get_mongo_client()[config.Database.API.value]
-
-
-def get_users_collection(database=Depends(get_api_database)):
-    return database[config.Collection.USERS.value]
+from src.db import get_mongo_client
 
 
-def get_bots_collection(database=Depends(get_api_database)):
-    return database[config.Collection.BOTS.value]
+class APICollections:
+    def __init__(self, database: AsyncIOMotorDatabase):
+        self.__database = database
+
+    @property
+    def users(self) -> Callable[[], DBCollection]:
+        return lambda: self.__database.users
+
+    @property
+    def bots(self) -> Callable[[], DBCollection]:
+        return lambda: self.__database.bots
+
+
+class Databases:
+    def __init__(self):
+        self.__client = get_mongo_client()
+
+    @property
+    def api(self) -> APICollections:
+        return APICollections(self.__client.api)
+
+
+get_db_collection = Databases()

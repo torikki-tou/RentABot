@@ -16,7 +16,7 @@ router = APIRouter()
 )
 async def read_bot(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_bots_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
 ):
     bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
@@ -31,7 +31,7 @@ async def read_bot(
 )
 async def create_bot(
         obj_in: schemas.BotCreate,
-        db_collection: DBCollection = Depends(deps.get_bots_collection),
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots),
         user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
     can_be, reason = await repo.bot.can_be_created(
@@ -64,7 +64,7 @@ async def create_bot(
 async def update_bot(
         bot_id: str,
         obj_in: schemas.BotUpdate,
-        db_collection: DBCollection = Depends(deps.get_bots_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
 ):
     bot = await repo.bot.update(db_collection, id_=bot_id, obj_in=obj_in)
     if not bot:
@@ -79,7 +79,7 @@ async def update_bot(
 )
 async def recreate_webhook(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_bots_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
 ):
     bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
@@ -94,7 +94,7 @@ async def recreate_webhook(
 )
 async def check_webhook(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_bots_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
 ):
     bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
@@ -110,7 +110,7 @@ async def check_webhook(
 )
 async def remove_bot(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_bots_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
 ):
     bot = await repo.bot.remove(db_collection, id_=bot_id)
     if not bot:

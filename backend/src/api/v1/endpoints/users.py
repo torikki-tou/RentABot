@@ -14,7 +14,7 @@ router = APIRouter()
 )
 async def read_user(
         user_id: str,
-        db_collection: DBCollection = Depends(deps.get_users_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.users)
 ):
     user = await repo.user.get(db_collection, id_=user_id)
     if not user:
@@ -29,7 +29,7 @@ async def read_user(
 )
 async def create_user(
         obj_in: schemas.UserCreate,
-        db_collection: DBCollection = Depends(deps.get_users_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.users)
 ):
     can_be, reason = await repo.user.can_be_created(
         db_collection, obj_in=obj_in
@@ -51,7 +51,7 @@ async def create_user(
 async def update_user(
         user_id: str,
         obj_in: schemas.UserUpdate,
-        db_collection: DBCollection = Depends(deps.get_users_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.users)
 ):
     user = await repo.user.update(db_collection, id_=user_id, obj_in=obj_in)
     if not user:
@@ -66,7 +66,7 @@ async def update_user(
 )
 async def remove_user(
         user_id: str,
-        db_collection: DBCollection = Depends(deps.get_users_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.users)
 ):
     user = await repo.user.remove(db_collection, id_=user_id)
     if not user:

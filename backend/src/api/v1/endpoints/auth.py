@@ -17,7 +17,7 @@ router = APIRouter()
 )
 async def get_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
-        db_collection: DBCollection = Depends(deps.get_users_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.users)
 ):
     user = await repo.user.authenticate(
         db_collection,

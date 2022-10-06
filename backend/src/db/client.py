@@ -7,10 +7,10 @@ class MongoClient:
     def __init__(self):
         self.client = AsyncIOMotorClient(settings.MONGO_CONNECTION_STRING)
 
-    def __call__(self):
+    def __call__(self) -> AsyncIOMotorClient:
         return self.client
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.client.close()
 
 
