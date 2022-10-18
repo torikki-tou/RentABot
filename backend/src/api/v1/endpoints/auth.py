@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.param_functions import Form
 from fastapi.security import OAuth2PasswordRequestForm
 from motor.motor_asyncio import AsyncIOMotorCollection as DBCollection
 
@@ -8,6 +9,31 @@ from src.api import deps
 
 
 router = APIRouter()
+
+
+@router.post(
+    '/sign_up',
+    response_model=schemas.User,
+    status_code=status.HTTP_200_OK
+)
+async def sign_up(
+        name: str = Form(),
+        username: str = Form(),
+        password: str = Form(),
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.users)
+):
+    obj_in = schemas.UserCreate(
+        name=name, email=username, password=password)
+    can_be, reason = await repo.user.can_be_created(
+        db_collection, obj_in=obj_in
+    )
+    if not can_be:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=reason
+        )
+    user = await repo.user.create(db_collection, obj_in=obj_in)
+    return schemas.User(**user.dict())
 
 
 @router.post(

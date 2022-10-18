@@ -7,7 +7,7 @@ from src.api import deps
 
 async def get_current_bot(
         webhook_key: str = Header(alias='X-Telegram-Bot-Api-Secret-Token'),
-        db_collection: DBCollection = Depends(deps.get_bots_collection)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
 ) -> schemas.BotInDB:
     bot = await repo.bot.get_by_webhook_key(db_collection, key=webhook_key)
     if not bot:

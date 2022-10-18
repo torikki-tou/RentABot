@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class UserBase(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
+    is_superuser: bool = False
 
 
 class UserCreate(UserBase):

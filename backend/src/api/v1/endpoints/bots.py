@@ -16,11 +16,14 @@ router = APIRouter()
 )
 async def read_bot(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots),
+        user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
     bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not(bot.owner_id == user.id or user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     return schemas.Bot(**bot.dict())
 
 
@@ -64,11 +67,15 @@ async def create_bot(
 async def update_bot(
         bot_id: str,
         obj_in: schemas.BotUpdate,
-        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots),
+        user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
-    bot = await repo.bot.update(db_collection, id_=bot_id, obj_in=obj_in)
+    bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not(bot.owner_id == user.id or user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    bot = await repo.bot.update(db_collection, id_=bot_id, obj_in=obj_in)
     return schemas.Bot(**bot.dict())
 
 
@@ -79,11 +86,14 @@ async def update_bot(
 )
 async def recreate_webhook(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots),
+        user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
     bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not(bot.owner_id == user.id or user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     await webhook.set_(bot)
 
 
@@ -94,13 +104,15 @@ async def recreate_webhook(
 )
 async def check_webhook(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots),
+        user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
     bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    is_up = await webhook.is_up(bot)
-    return schemas.WebhookUp(is_up=is_up)
+    if not(bot.owner_id == user.id or user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    return schemas.WebhookUp(is_up=(await webhook.is_up(bot)))
 
 
 @router.delete(
@@ -110,10 +122,14 @@ async def check_webhook(
 )
 async def remove_bot(
         bot_id: str,
-        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots)
+        db_collection: DBCollection = Depends(deps.get_db_collection.api.bots),
+        user: schemas.UserInDB = Depends(deps.get_current_user)
 ):
-    bot = await repo.bot.remove(db_collection, id_=bot_id)
+    bot = await repo.bot.get(db_collection, id_=bot_id)
     if not bot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not(bot.owner_id == user.id or user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    bot = await repo.bot.remove(db_collection, id_=bot_id)
     await webhook.delete(bot)
     return schemas.Bot(**bot.dict())
